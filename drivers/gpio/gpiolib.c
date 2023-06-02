@@ -32,6 +32,10 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/gpio.h>
 
+#ifdef CONFIG_DEBUG_CITRUS
+#include <linux/delay.h>
+#endif
+
 /* Implementation infrastructure for GPIO interfaces.
  *
  * The GPIO programming interface allows for inlining speed-critical
@@ -2893,6 +2897,14 @@ static void gpio_set_open_drain_value_commit(struct gpio_desc *desc, bool value)
 	struct gpio_chip *gc = desc->gdev->chip;
 	int offset = gpio_chip_hwgpio(desc);
 
+#ifdef CONFIG_DEBUG_CITRUS
+	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
+		dev_info(&desc->gdev->dev, "gpio_set_open_drain_value_commit: %lu GPIO %d: %d",
+			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),
+			 (int)value);
+	}
+#endif
+
 	if (value) {
 		ret = gc->direction_input(gc, offset);
 	} else {
@@ -2918,6 +2930,14 @@ static void gpio_set_open_source_value_commit(struct gpio_desc *desc, bool value
 	struct gpio_chip *gc = desc->gdev->chip;
 	int offset = gpio_chip_hwgpio(desc);
 
+#ifdef CONFIG_DEBUG_CITRUS
+	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
+		dev_info(&desc->gdev->dev, "gpio_set_open_source_value_commit: %lu GPIO %d: %d",
+			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),
+			 (int)value);
+	}
+#endif
+
 	if (value) {
 		ret = gc->direction_output(gc, offset, 1);
 		if (!ret)
@@ -2935,6 +2955,14 @@ static void gpio_set_open_source_value_commit(struct gpio_desc *desc, bool value
 static void gpiod_set_raw_value_commit(struct gpio_desc *desc, bool value)
 {
 	struct gpio_chip	*gc;
+
+#ifdef CONFIG_DEBUG_CITRUS
+	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
+		dev_info(&desc->gdev->dev, "gpio_set_open_source_value_commit: %lu GPIO %d: %d",
+			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),
+			 (int)value);
+	}
+#endif
 
 	gc = desc->gdev->chip;
 	trace_gpio_value(desc_to_gpio(desc), 0, value);

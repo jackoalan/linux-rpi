@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: GPL-2.0-only
+menuconfig CITRUS
+	bool "Platform support for Citrus"
+	depends on HAS_IOMEM && HAS_DMA
+	help
+	  Say Y here to get to see options for the Citrus platform.
+
+if CITRUS
+
+config CITRUS_CORE
+	tristate "Citrus I2C multiplexing"
+	help
+	  This device driver contains specialized 2x hyperpixel initialization
+	  and i2c master/slave functionality
+
+config DEBUG_CITRUS
+	bool "Citrus verbose debug messages"
+	help
+	  Say Y here if you want the Citrus core to produce a bunch of
+	  debug messages to the system log. Select this if you are having a
+	  problem with the driver core and want to see more of what is
+	  going on.
+
+	  If you are unsure about this, say N here.
+
+endif # CITRUS

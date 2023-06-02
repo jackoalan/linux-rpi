@@ -88,4 +88,9 @@ static inline void fsleep(unsigned long usecs)
 		msleep(DIV_ROUND_UP(usecs, 1000));
 }
 
+static inline unsigned long cycles_to_usecs(unsigned long cycles)
+{
+	return (cycles << 32) / (loops_per_jiffy * HZ) / 0x10C7UL;
+}
+
 #endif /* defined(_LINUX_DELAY_H) */

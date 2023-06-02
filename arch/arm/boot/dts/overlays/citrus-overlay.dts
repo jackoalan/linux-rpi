@@ -1,5 +1,5 @@
 /*
- * vc4-kms-dpi-hyperpixel2r-overlay.dts
+ * citrus-overlay.dts
  */
 
 #include <dt-bindings/gpio/gpio.h>
@@ -14,8 +14,8 @@
 	fragment@0 {
 		target-path = "/";
 		__overlay__ {
-			spi {
-				compatible = "spi-gpio";
+			citrus {
+				compatible = "citrus-core";
 				#address-cells = <1>;
 				#size-cells = <0>;
 				pinctrl-0 = <&spi_pins>;
@@ -23,20 +23,26 @@
 
 				sck-gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
 				mosi-gpios = <&gpio 10 GPIO_ACTIVE_HIGH>;
-				cs-gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
+				cs-gpios = <&gpio 18 GPIO_ACTIVE_HIGH>;
 				num-chipselects = <1>;
 
-				panel: display@0 {
-					compatible = "pimoroni,hyperpixel2round";
-					reg = <0>;
-					/* 100 kHz */
-					spi-max-frequency = <100000>;
-					backlight = <&backlight>;
-					rotation = <0>;
+				spi {
+					compatible = "spi-citrus";
+					#address-cells = <1>;
+					#size-cells = <0>;
 
-					port {
-						panel_in: endpoint {
-							remote-endpoint = <&dpi_out>;
+					panel: display@0 {
+						compatible = "pimoroni,hyperpixel2round";
+						reg = <0>;
+						/* 100 kHz */
+						spi-max-frequency = <100000>;
+						backlight = <&backlight>;
+						rotation = <0>;
+
+						port {
+							panel_in: endpoint {
+								remote-endpoint = <&dpi_out>;
+							};
 						};
 					};
 				};
