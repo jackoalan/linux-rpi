@@ -213,31 +213,11 @@ static void spi_citrus_chipselect(struct spi_device *spi, int is_active)
 	if (is_active) {
 		citrus_core_set_spi_sck(spi_gpio->citrus_core, spi->mode & SPI_CPOL);
 	}
-
-	/* Drive chip select line, if we have one */
-	dev_dbg(&spi->dev, "spi_citrus_chipselect: cshigh: %lu", (spi->mode & SPI_CS_HIGH));
-	citrus_core_set_spi_cs(spi_gpio->citrus_core,
-			       (spi->mode & SPI_CS_HIGH) ? is_active : !is_active);
 }
 
 static int spi_citrus_setup(struct spi_device *spi)
 {
-	int			status = 0;
-	struct spi_citrus	*spi_gpio = spi_to_spi_citrus(spi);
-
-	/*
-	 * The CS GPIOs have already been
-	 * initialized from the descriptor lookup.
-	 */
-	if (!spi->controller_state) {
-		citrus_core_set_spi_cs_direction_output(spi_gpio->citrus_core,
-							!(spi->mode & SPI_CS_HIGH));
-	}
-
-	if (!status)
-		status = spi_bitbang_setup(spi);
-
-	return status;
+	return spi_bitbang_setup(spi);
 }
 
 static int spi_citrus_set_direction(struct spi_device *spi, bool output)
@@ -329,13 +309,13 @@ static int spi_citrus_probe_dt(struct platform_device *pdev,
 
 	spi_node = of_find_matching_node(pdev->dev.of_node, spi_citrus_dt_ids);
 	if (!spi_node || !of_device_is_available(spi_node)) {
-		dev_err_probe(&pdev->dev, -ENODEV, "spi-citrus device node not found");
+		dev_err_probe(&pdev->dev, -ENODEV, "spi-citrus device node not found\n");
 		return -ENODEV;
 	}
-	dev_dbg(&pdev->dev, "Found spi-citrus node");
+	dev_dbg(&pdev->dev, "Found spi-citrus node\n");
 
 	master->dev.of_node = spi_node;
-	master->use_gpio_descriptors = false;
+	master->use_gpio_descriptors = true;
 
 	return 0;
 }
@@ -351,7 +331,7 @@ int spi_citrus_probe(struct platform_device *pdev, struct citrus_core *citrus)
 	struct device			*dev = &pdev->dev;
 	struct spi_bitbang		*bb;
 
-	dev_dbg(dev, "Probing spi-citrus");
+	dev_dbg(dev, "Probing spi-citrus\n");
 
 	master = devm_spi_alloc_master(dev, sizeof(*spi_gpio));
 	if (!master)
@@ -359,7 +339,7 @@ int spi_citrus_probe(struct platform_device *pdev, struct citrus_core *citrus)
 
 	if (!pdev->dev.of_node) {
 		dev_err_probe(dev, -ENODEV,
-			      "spi-citrus must be probed with of_node");
+			      "spi-citrus must be probed with of_node\n");
 		return -ENODEV;
 	}
 
@@ -374,7 +354,7 @@ int spi_citrus_probe(struct platform_device *pdev, struct citrus_core *citrus)
 	master->mode_bits = SPI_3WIRE | SPI_3WIRE_HIZ | SPI_CPHA | SPI_CPOL |
 			    SPI_CS_HIGH | SPI_LSB_FIRST;
 
-	master->bus_num = pdev->id;
+	master->bus_num = (s16)pdev->id;
 	master->setup = spi_citrus_setup;
 	master->cleanup = spi_citrus_cleanup;
 

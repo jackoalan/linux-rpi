@@ -2899,7 +2899,7 @@ static void gpio_set_open_drain_value_commit(struct gpio_desc *desc, bool value)
 
 #ifdef CONFIG_DEBUG_CITRUS
 	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
-		dev_info(&desc->gdev->dev, "gpio_set_open_drain_value_commit: %lu GPIO %d: %d",
+		dev_info(&desc->gdev->dev, "gpio_set_open_drain_value_commit: %lu GPIO %d: %d\n",
 			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),
 			 (int)value);
 	}
@@ -2932,7 +2932,7 @@ static void gpio_set_open_source_value_commit(struct gpio_desc *desc, bool value
 
 #ifdef CONFIG_DEBUG_CITRUS
 	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
-		dev_info(&desc->gdev->dev, "gpio_set_open_source_value_commit: %lu GPIO %d: %d",
+		dev_info(&desc->gdev->dev, "gpio_set_open_source_value_commit: %lu GPIO %d: %d\n",
 			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),
 			 (int)value);
 	}
@@ -2958,7 +2958,7 @@ static void gpiod_set_raw_value_commit(struct gpio_desc *desc, bool value)
 
 #ifdef CONFIG_DEBUG_CITRUS
 	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
-		dev_info(&desc->gdev->dev, "gpio_set_open_source_value_commit: %lu GPIO %d: %d",
+		dev_info(&desc->gdev->dev, "gpio_set_open_source_value_commit: %lu GPIO %d: %d\n",
 			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),
 			 (int)value);
 	}

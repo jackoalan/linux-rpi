@@ -5,7 +5,6 @@
 
 struct citrus_core {
 	struct device		*pdev_dev;
-	struct gpio_desc	*cs;
 	struct gpio_desc	*sck;
 	struct gpio_desc	*mosi;
 	struct mutex		bus_mutex;
@@ -29,68 +28,112 @@ struct citrus_core {
  *
  */
 
+#define WITH_POINTER_LOGGING 0
+
+#if WITH_POINTER_LOGGING
+#define citrus_info(citrus, fmt, ...) \
+	dev_info(citrus->pdev_dev, "c:%p t:%p " fmt, citrus, current, ## __VA_ARGS__)
+#define citrus_dbg(citrus, fmt, ...) \
+	dev_dbg(citrus->pdev_dev, "c:%p t:%p " fmt, citrus, current, ## __VA_ARGS__)
+#else
+#define citrus_info(citrus, fmt, ...) \
+	dev_info(citrus->pdev_dev, fmt, ## __VA_ARGS__)
+#define citrus_dbg(citrus, fmt, ...) \
+	dev_dbg(citrus->pdev_dev, fmt, ## __VA_ARGS__)
+#endif
+
 static inline void citrus_core_lock_spi(struct citrus_core *citrus)
 {
+	citrus_dbg(citrus, "citrus_core_lock_spi: locking\n");
 	mutex_lock(&citrus->bus_mutex);
-	dev_dbg(citrus->pdev_dev, "citrus_core_lock_spi: locked");
+	citrus_dbg(citrus, "citrus_core_lock_spi: locked\n");
 }
 
 static inline void citrus_core_unlock_spi(struct citrus_core *citrus)
 {
+	citrus_dbg(citrus, "citrus_core_lock_spi: unlocking\n");
 	mutex_unlock(&citrus->bus_mutex);
-	dev_dbg(citrus->pdev_dev, "citrus_core_lock_spi: unlocked");
+	citrus_dbg(citrus, "citrus_core_lock_spi: unlocked\n");
 }
 
 static inline void citrus_core_set_spi_sck(struct citrus_core *citrus, int value)
 {
-	dev_dbg(citrus->pdev_dev, "citrus_core_set_spi_sck: %d", value);
+	citrus_dbg(citrus, "citrus_core_set_spi_sck: %d\n", value);
 	gpiod_set_value_cansleep(citrus->sck, value);
-}
-
-static inline void citrus_core_set_spi_cs(struct citrus_core *citrus, int value)
-{
-	dev_dbg(citrus->pdev_dev, "citrus_core_set_spi_cs: %d", value);
-	gpiod_set_value_cansleep(citrus->cs, value);
-}
-
-static inline int citrus_core_set_spi_cs_direction_output(struct citrus_core *citrus, int value)
-{
-	dev_dbg(citrus->pdev_dev, "citrus_core_set_spi_cs_direction_output: %d", value);
-	return gpiod_direction_output(citrus->cs, value);
 }
 
 static inline void citrus_core_set_spi_mosi(struct citrus_core *citrus, int value)
 {
-	dev_dbg(citrus->pdev_dev, "citrus_core_set_spi_mosi: %d", value);
+	citrus_dbg(citrus, "citrus_core_set_spi_mosi: %d\n", value);
 	gpiod_set_value_cansleep(citrus->mosi, value);
 }
 
 static inline int citrus_core_set_spi_mosi_direction_input(struct citrus_core *citrus)
 {
-	dev_dbg(citrus->pdev_dev, "citrus_core_set_spi_mosi_direction_input");
+	citrus_dbg(citrus, "citrus_core_set_spi_mosi_direction_input\n");
 	return gpiod_direction_input(citrus->mosi);
 }
 
 static inline int citrus_core_set_spi_mosi_direction_output(struct citrus_core *citrus, int value)
 {
-	dev_dbg(citrus->pdev_dev, "citrus_core_set_spi_mosi_direction_output: %d", value);
+	citrus_dbg(citrus, "citrus_core_set_spi_mosi_direction_output: %d\n", value);
 	return gpiod_direction_output(citrus->mosi, value);
 }
 
 #include "citrus-spi.c"
 
+static inline void citrus_core_lock_i2c(struct citrus_core *citrus)
+{
+	citrus_dbg(citrus, "citrus_core_lock_i2c: locking\n");
+	mutex_lock(&citrus->bus_mutex);
+	citrus_dbg(citrus, "citrus_core_lock_i2c: locked\n");
+}
+
+static inline void citrus_core_unlock_i2c(struct citrus_core *citrus)
+{
+	citrus_dbg(citrus, "citrus_core_lock_i2c: unlocking\n");
+	mutex_unlock(&citrus->bus_mutex);
+	citrus_dbg(citrus, "citrus_core_lock_i2c: unlocked\n");
+}
+
+static inline void citrus_core_set_i2c_sda(struct citrus_core *citrus, int value)
+{
+	citrus_dbg(citrus, "citrus_core_set_i2c_sda: %d\n", value);
+	gpiod_set_value_cansleep(citrus->mosi, value);
+}
+
+static inline void citrus_core_set_i2c_scl(struct citrus_core *citrus, int value)
+{
+	citrus_dbg(citrus, "citrus_core_set_i2c_scl: %d\n", value);
+	gpiod_set_value_cansleep(citrus->sck, value);
+}
+
+static inline int citrus_core_get_i2c_sda(struct citrus_core *citrus)
+{
+	int value;
+	value = gpiod_get_value_cansleep(citrus->mosi);
+	citrus_dbg(citrus, "citrus_core_get_i2c_sda: %d\n", value);
+	return value;
+}
+
+static inline int citrus_core_get_i2c_scl(struct citrus_core *citrus)
+{
+	int value;
+	value = gpiod_get_value_cansleep(citrus->sck);
+	citrus_dbg(citrus, "citrus_core_get_i2c_scl: %d\n", value);
+	return value;
+}
+
+#include "citrus-i2c.c"
+
 static int citrus_core_request(struct device *dev, struct citrus_core *citrus)
 {
-	citrus->mosi = devm_gpiod_get(dev, "mosi", GPIOD_OUT_LOW);
+	citrus->mosi = devm_gpiod_get(dev, "mosi", GPIOD_OUT_LOW_OPEN_DRAIN);
 	if (IS_ERR(citrus->mosi))
 		return PTR_ERR(citrus->mosi);
 
-	citrus->sck = devm_gpiod_get(dev, "sck", GPIOD_OUT_LOW);
-	if (IS_ERR(citrus->sck))
-		return PTR_ERR(citrus->sck);
-
-	citrus->cs = devm_gpiod_get(dev, "cs", GPIOD_OUT_HIGH);
-	return PTR_ERR_OR_ZERO(citrus->cs);
+	citrus->sck = devm_gpiod_get(dev, "sck", GPIOD_OUT_LOW_OPEN_DRAIN);
+	return PTR_ERR_OR_ZERO(citrus->sck);
 }
 
 static int citrus_core_device_init(struct platform_device *pdev,
@@ -106,12 +149,6 @@ static int citrus_core_device_init(struct platform_device *pdev,
 	return 0;
 }
 
-static void citrus_core_device_deinit(struct platform_device *pdev,
-				      struct citrus_core *citrus)
-{
-
-}
-
 static int citrus_core_probe(struct platform_device *pdev)
 {
 	struct citrus_core *citrus;
@@ -124,25 +161,30 @@ static int citrus_core_probe(struct platform_device *pdev)
 	citrus->pdev_dev = &pdev->dev;
 	mutex_init(&citrus->bus_mutex);
 
-	dev_dbg(&pdev->dev, "Probing citrus-core");
+	citrus_dbg(citrus, "Probing citrus-core\n");
 
 	result = citrus_core_device_init(pdev, citrus);
-	dev_dbg(&pdev->dev, "citrus_core_device_init: %d", result);
+	citrus_dbg(citrus, "citrus_core_device_init: %d\n", result);
 	if (result)
 		return result;
 
 	result = spi_citrus_probe(pdev, citrus);
-	dev_dbg(&pdev->dev, "spi_citrus_probe: %d", result);
+	citrus_dbg(citrus, "spi_citrus_probe: %d\n", result);
+	if (result)
+		return result;
 
-	return result;
+	result = i2c_citrus_probe(pdev, citrus);
+	citrus_dbg(citrus, "i2c_citrus_probe: %d\n", result);
+	if (result)
+		return result;
+
+	citrus_info(citrus, "Citrus successfully probed\n");
+	return 0;
 }
 
 static int citrus_core_remove(struct platform_device *pdev)
 {
-	struct citrus_core *citrus = platform_get_drvdata(pdev);
-
-	citrus_core_device_deinit(pdev, citrus);
-	return 0;
+	return i2c_citrus_remove(pdev);
 }
 
 static const struct of_device_id citrus_core_of_match[] = {

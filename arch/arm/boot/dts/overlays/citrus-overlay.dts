@@ -15,21 +15,21 @@
 		target-path = "/";
 		__overlay__ {
 			citrus {
+				/* Core driver multiplexes SPI and I2C */
 				compatible = "citrus-core";
 				#address-cells = <1>;
 				#size-cells = <0>;
-				pinctrl-0 = <&spi_pins>;
-				pinctrl-names = "default";
 
-				sck-gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
-				mosi-gpios = <&gpio 10 GPIO_ACTIVE_HIGH>;
-				cs-gpios = <&gpio 18 GPIO_ACTIVE_HIGH>;
-				num-chipselects = <1>;
+				/* Set bias for I2C compatibility */
+				sck-gpios = <&gpio 11 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_PULL_UP)>;
+				mosi-gpios = <&gpio 10 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_PULL_UP)>;
 
 				spi {
 					compatible = "spi-citrus";
 					#address-cells = <1>;
 					#size-cells = <0>;
+
+					cs-gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
 
 					panel: display@0 {
 						compatible = "pimoroni,hyperpixel2round";
@@ -46,11 +46,31 @@
 						};
 					};
 				};
+
+				i2c {
+					compatible = "i2c-citrus";
+					i2c-gpio,delay-us = <4>;        /* ~100 kHz */
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					polytouch: edt-ft5x06@15 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						compatible = "edt,edt-ft5406";
+						reg = <0x15>;
+						interrupt-parent = <&gpio>;
+						interrupts = <27 0x02>;
+						touchscreen-size-x = <240>;
+						touchscreen-size-y = <240>;
+					};
+				};
 			};
 
 			backlight: backlight {
-				compatible = "gpio-backlight";
-				gpios = <&gpio 19 0>;
+				compatible = "pwm-backlight";
+				pinctrl-0 = <&pwm1_gpio19>;
+				pinctrl-names = "default";
+				pwms = <&pwm 1 5000000 0>;
 			};
 		};
 	};
@@ -72,40 +92,9 @@
 	};
 
 	fragment@2 {
-		target = <&gpio>;
-		__overlay__ {
-			spi_pins: hyperpixel4_spi_pins {
-				brcm,pins = <11 18 10>;
-				brcm,pull = <BCM2835_PUD_UP BCM2835_PUD_UP BCM2835_PUD_OFF>;
-				brcm,function = <BCM2835_FSEL_GPIO_IN>;
-			};
-		};
-	};
-
-	fragment@3 {
-		target-path = "/";
-		__overlay__ {
-			i2c_gpio: i2c@0 {
-				compatible = "i2c-gpio";
-				status = "disabled";
-
-				gpios = <&gpio 10 GPIO_ACTIVE_HIGH /* sda */
-					 &gpio 11 GPIO_ACTIVE_HIGH>; /* scl */
-				i2c-gpio,delay-us = <4>;        /* ~100 kHz */
-				#address-cells = <1>;
-				#size-cells = <0>;
-
-				polytouch: edt-ft5x06@15 {
-					#address-cells = <1>;
-					#size-cells = <0>;
-					compatible = "edt,edt-ft5406";
-					reg = <0x15>;
-					interrupt-parent = <&gpio>;
-					interrupts = <27 0x02>;
-					touchscreen-size-x = <240>;
-					touchscreen-size-y = <240>;
-				};
-			};
+		target = <&pwm>;
+		__overlay__  {
+			status = "okay";
 		};
 	};
 
