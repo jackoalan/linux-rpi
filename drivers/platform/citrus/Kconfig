@@ -23,4 +23,20 @@ config DEBUG_CITRUS
 
 	  If you are unsure about this, say N here.
 
+config DEBUG_CITRUS_GPIO
+	bool "Citrus GPIO verbose debug messages"
+	help
+	  Say Y here if you want the Citrus core to produce a bunch of
+	  debug messages to the system log. Select this if you are having a
+	  problem with the driver core and want to see more of what is
+	  going on.
+
+	  If you are unsure about this, say N here.
+
+config CITRUS_BACKLIGHT_POWEROFF
+	bool "Citrus backlight poweroff"
+	help
+	  Say Y here if you want to modify pinctrl-bcm2835 to force off the
+	  backlight pin on pm_power_off.
+
 endif # CITRUS

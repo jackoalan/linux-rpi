@@ -63,6 +63,13 @@
 						touchscreen-size-x = <240>;
 						touchscreen-size-y = <240>;
 					};
+
+					bno055@28 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						compatible = "bosch,bno055";
+						reg = <0x28>;
+					};
 				};
 			};
 

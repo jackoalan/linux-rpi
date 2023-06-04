@@ -1206,6 +1206,20 @@ static const struct of_device_id bcm2835_pinctrl_match[] = {
 	{}
 };
 
+#ifdef CONFIG_CITRUS_BACKLIGHT_POWEROFF
+static void (*old_power_off)(void) = NULL;
+static struct bcm2835_pinctrl *poweroff_pc = NULL;
+
+static void bcm2835_pinctrl_do_poweroff(void)
+{
+	bcm2835_gpio_set_bit(poweroff_pc, GPCLR0, 19);
+	bcm2835_pinctrl_fsel_set(poweroff_pc, 19, BCM2835_FSEL_GPIO_OUT);
+
+	if (old_power_off)
+		old_power_off();
+}
+#endif
+
 static int bcm2835_pinctrl_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -1351,6 +1365,12 @@ static int bcm2835_pinctrl_probe(struct platform_device *pdev)
 		dev_err(dev, "could not add GPIO chip\n");
 		goto out_remove;
 	}
+
+#ifdef CONFIG_CITRUS_BACKLIGHT_POWEROFF
+	poweroff_pc = pc;
+	old_power_off = pm_power_off;
+	pm_power_off = &bcm2835_pinctrl_do_poweroff;
+#endif
 
 	return 0;
 

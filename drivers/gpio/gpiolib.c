@@ -32,7 +32,7 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/gpio.h>
 
-#ifdef CONFIG_DEBUG_CITRUS
+#ifdef CONFIG_DEBUG_CITRUS_GPIO
 #include <linux/delay.h>
 #endif
 
@@ -2897,7 +2897,7 @@ static void gpio_set_open_drain_value_commit(struct gpio_desc *desc, bool value)
 	struct gpio_chip *gc = desc->gdev->chip;
 	int offset = gpio_chip_hwgpio(desc);
 
-#ifdef CONFIG_DEBUG_CITRUS
+#ifdef CONFIG_DEBUG_CITRUS_GPIO
 	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
 		dev_info(&desc->gdev->dev, "gpio_set_open_drain_value_commit: %lu GPIO %d: %d\n",
 			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),
@@ -2930,7 +2930,7 @@ static void gpio_set_open_source_value_commit(struct gpio_desc *desc, bool value
 	struct gpio_chip *gc = desc->gdev->chip;
 	int offset = gpio_chip_hwgpio(desc);
 
-#ifdef CONFIG_DEBUG_CITRUS
+#ifdef CONFIG_DEBUG_CITRUS_GPIO
 	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
 		dev_info(&desc->gdev->dev, "gpio_set_open_source_value_commit: %lu GPIO %d: %d\n",
 			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),
@@ -2956,7 +2956,7 @@ static void gpiod_set_raw_value_commit(struct gpio_desc *desc, bool value)
 {
 	struct gpio_chip	*gc;
 
-#ifdef CONFIG_DEBUG_CITRUS
+#ifdef CONFIG_DEBUG_CITRUS_GPIO
 	if (desc_to_gpio(desc) == 10 || desc_to_gpio(desc) == 11 || desc_to_gpio(desc) == 18) {
 		dev_info(&desc->gdev->dev, "gpio_set_open_source_value_commit: %lu GPIO %d: %d\n",
 			 cycles_to_usecs(get_cycles()), desc_to_gpio(desc),

@@ -17,6 +17,8 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/spi_bitbang.h>
 
+#include <linux/delay.h>
+
 /*
  * This bitbanging SPI master driver should help make systems usable
  * when a native hardware SPI engine is not available, perhaps because
@@ -94,12 +96,10 @@ static inline int getmiso(const struct spi_device *spi)
 }
 
 /*
- * NOTE:  this clocks "as fast as we can".  It "should" be a function of the
- * requested device clock.  Software overhead means we usually have trouble
- * reaching even one Mbit/sec (except when we can inline bitops), so for now
- * we'll just assume we never need additional per-bit slowdowns.
+ * NOTE: Because we coexist with timing-sensitive I2C devices, we cannot clock
+ * "as fast as we can".
  */
-#define spidelay(nsecs)	do {} while (0)
+#define spidelay(x) ndelay(x)
 
 #include "../../spi/spi-bitbang-txrx.h"
 
