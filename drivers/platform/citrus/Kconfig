@@ -33,10 +33,4 @@ config DEBUG_CITRUS_GPIO
 
 	  If you are unsure about this, say N here.
 
-config CITRUS_BACKLIGHT_POWEROFF
-	bool "Citrus backlight poweroff"
-	help
-	  Say Y here if you want to modify pinctrl-bcm2835 to force off the
-	  backlight pin on pm_power_off.
-
 endif # CITRUS
