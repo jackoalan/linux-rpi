@@ -302,17 +302,16 @@ static const struct of_device_id spi_citrus_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, spi_citrus_dt_ids);
 
-static int spi_citrus_probe_dt(struct platform_device *pdev,
-			       struct spi_master *master)
+static int spi_citrus_probe_dt(struct device *dev, struct spi_master *master)
 {
 	struct device_node *spi_node;
 
-	spi_node = of_find_matching_node(pdev->dev.of_node, spi_citrus_dt_ids);
+	spi_node = of_find_matching_node(dev->of_node, spi_citrus_dt_ids);
 	if (!spi_node || !of_device_is_available(spi_node)) {
-		dev_err_probe(&pdev->dev, -ENODEV, "spi-citrus device node not found\n");
+		dev_err_probe(dev, -ENODEV, "spi-citrus device node not found\n");
 		return -ENODEV;
 	}
-	dev_dbg(&pdev->dev, "Found spi-citrus node\n");
+	dev_dbg(dev, "Found spi-citrus node\n");
 
 	master->dev.of_node = spi_node;
 	master->use_gpio_descriptors = true;
@@ -323,12 +322,11 @@ static int spi_citrus_probe_dt(struct platform_device *pdev,
 #error Must be compiled with CONFIG_OF
 #endif
 
-int spi_citrus_probe(struct platform_device *pdev, struct citrus_core *citrus)
+int spi_citrus_probe(struct device *dev, struct citrus_core *citrus)
 {
 	int				status;
 	struct spi_master		*master;
 	struct spi_citrus		*spi_gpio;
-	struct device			*dev = &pdev->dev;
 	struct spi_bitbang		*bb;
 
 	dev_dbg(dev, "Probing spi-citrus\n");
@@ -337,13 +335,13 @@ int spi_citrus_probe(struct platform_device *pdev, struct citrus_core *citrus)
 	if (!master)
 		return -ENOMEM;
 
-	if (!pdev->dev.of_node) {
+	if (!dev->of_node) {
 		dev_err_probe(dev, -ENODEV,
 			      "spi-citrus must be probed with of_node\n");
 		return -ENODEV;
 	}
 
-	status = spi_citrus_probe_dt(pdev, master);
+	status = spi_citrus_probe_dt(dev, master);
 	if (status)
 		return status;
 
@@ -354,7 +352,7 @@ int spi_citrus_probe(struct platform_device *pdev, struct citrus_core *citrus)
 	master->mode_bits = SPI_3WIRE | SPI_3WIRE_HIZ | SPI_CPHA | SPI_CPOL |
 			    SPI_CS_HIGH | SPI_LSB_FIRST;
 
-	master->bus_num = (s16)pdev->id;
+	master->bus_num = -1;
 	master->setup = spi_citrus_setup;
 	master->cleanup = spi_citrus_cleanup;
 
@@ -389,5 +387,5 @@ int spi_citrus_probe(struct platform_device *pdev, struct citrus_core *citrus)
 	master->prepare_transfer_hardware = spi_citrus_prepare_hardware;
 	master->unprepare_transfer_hardware = spi_citrus_unprepare_hardware;
 
-	return devm_spi_register_master(&pdev->dev, master);
+	return devm_spi_register_master(dev, master);
 }

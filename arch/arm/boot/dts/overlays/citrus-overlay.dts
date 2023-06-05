@@ -22,6 +22,7 @@
 
 				/* Set bias for I2C compatibility */
 				sck-gpios = <&gpio 11 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_PULL_UP)>;
+				sck2-gpios = <&gpio 26 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_PULL_UP)>;
 				mosi-gpios = <&gpio 10 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_PULL_UP)>;
 
 				spi {
@@ -59,10 +60,18 @@
 						compatible = "edt,edt-ft5406";
 						reg = <0x15>;
 						interrupt-parent = <&gpio>;
-						interrupts = <27 0x02>;
+						interrupts = <27 0x02>; /* IRQF_TRIGGER_FALLING */
 						touchscreen-size-x = <240>;
 						touchscreen-size-y = <240>;
 					};
+				};
+
+				/* This node is optional */
+				i2c2 {
+					compatible = "i2c-citrus2";
+					i2c-gpio,delay-us = <4>;        /* ~100 kHz */
+					#address-cells = <1>;
+					#size-cells = <0>;
 
 					bno055@28 {
 						#address-cells = <1>;
