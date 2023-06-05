@@ -151,7 +151,7 @@ static int citrus_core_request(struct device *dev, struct citrus_core *citrus)
 	if (IS_ERR(citrus->sck))
 		return PTR_ERR(citrus->sck);
 
-	citrus->sck2 = devm_gpiod_get(dev, "sck2", GPIOD_OUT_LOW_OPEN_DRAIN);
+	citrus->sck2 = devm_gpiod_get_optional(dev, "sck2", GPIOD_OUT_LOW_OPEN_DRAIN);
 	return PTR_ERR_OR_ZERO(citrus->sck2);
 }
 
@@ -185,10 +185,12 @@ static int citrus_core_probe(struct platform_device *pdev)
 	if (result)
 		return result;
 
-	result = i2c_citrus_probe(dev, citrus, true);
-	citrus_dbg(citrus, "i2c_citrus_probe scl2: %d\n", result);
-	if (result && result != -ENODEV) /* scl2 is optional */
-		return result;
+	if (citrus->sck2) {
+		result = i2c_citrus_probe(dev, citrus, true);
+		citrus_dbg(citrus, "i2c_citrus_probe scl2: %d\n", result);
+		if (result && result != -ENODEV) /* scl2 is optional */
+			return result;
+	}
 
 	platform_set_drvdata(pdev, citrus);
 	citrus_info(citrus, "Citrus successfully probed\n");
