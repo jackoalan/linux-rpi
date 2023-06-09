@@ -302,6 +302,12 @@ static const struct of_device_id spi_citrus_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, spi_citrus_dt_ids);
 
+static void spi_citrus_remove_subdevice(void *data)
+{
+	struct device *dev = data;
+	of_node_put(dev->of_node);
+}
+
 static int spi_citrus_probe_dt(struct device *dev, struct spi_master *master)
 {
 	struct device_node *spi_node;
@@ -309,6 +315,7 @@ static int spi_citrus_probe_dt(struct device *dev, struct spi_master *master)
 	spi_node = of_find_matching_node(dev->of_node, spi_citrus_dt_ids);
 	if (!spi_node || !of_device_is_available(spi_node)) {
 		dev_err_probe(dev, -ENODEV, "spi-citrus device node not found\n");
+		of_node_put(spi_node);
 		return -ENODEV;
 	}
 	dev_dbg(dev, "Found spi-citrus node\n");
@@ -316,7 +323,9 @@ static int spi_citrus_probe_dt(struct device *dev, struct spi_master *master)
 	master->dev.of_node = spi_node;
 	master->use_gpio_descriptors = true;
 
-	return 0;
+	return devm_add_action_or_reset(&master->dev,
+					spi_citrus_remove_subdevice,
+					&master->dev);
 }
 #else
 #error Must be compiled with CONFIG_OF

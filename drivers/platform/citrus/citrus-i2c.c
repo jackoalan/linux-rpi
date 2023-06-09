@@ -135,6 +135,7 @@ static struct device_node *i2c_citrus_probe_dt(struct device *dev, bool scl2)
 		if (!scl2) /* scl2 is optional */
 			dev_err_probe(dev, -ENODEV,
 				      "i2c-citrus device node not found\n");
+		of_node_put(i2c_node);
 		return ERR_PTR(-ENODEV);
 	}
 	dev_dbg(dev, scl2 ? "Found i2c-citrus2 node\n"
@@ -149,6 +150,7 @@ static struct device_node *i2c_citrus_probe_dt(struct device *dev, bool scl2)
 static void i2c_citrus_remove(void *data)
 {
 	struct i2c_adapter *adap = data;
+	of_node_put(adap->dev.of_node);
 	i2c_del_adapter(adap);
 }
 
@@ -167,8 +169,10 @@ static int i2c_citrus_probe(struct device *dev, struct citrus_core *citrus,
 		return PTR_ERR(np);
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv)
+	if (!priv) {
+		of_node_put(np);
 		return -ENOMEM;
+	}
 
 	priv->citrus_core = citrus;
 	adap = &priv->adap;
@@ -214,8 +218,10 @@ static int i2c_citrus_probe(struct device *dev, struct citrus_core *citrus,
 
 	adap->nr = -1;
 	ret = i2c_bit_add_numbered_bus(adap);
-	if (ret)
+	if (ret) {
+		of_node_put(np);
 		return ret;
+	}
 
 	return devm_add_action_or_reset(dev, i2c_citrus_remove, adap);
 }
